@@ -10,4 +10,5 @@ import java.util.List;
 public interface InterviewRepository extends JpaRepository<Interview, Long> {
     List<Interview> findByUserId(Long userId);
     List<Interview> findByPosition(String position);
+    List<Interview> findByScoreGreaterThan(int score);
 }

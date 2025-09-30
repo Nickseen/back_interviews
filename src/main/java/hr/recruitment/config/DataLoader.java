@@ -1,7 +1,9 @@
 package hr.recruitment.config;
 
+import hr.recruitment.model.Interview;
 import hr.recruitment.model.User;
 import hr.recruitment.model.enums.Role;
+import hr.recruitment.repository.InterviewRepository;
 import hr.recruitment.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,16 +20,26 @@ import java.util.Random;
 public class DataLoader implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final InterviewRepository interviewRepository;
 
     @Override
     public void run(String... args) throws Exception {
         long existingUsers = userRepository.count();
+        long existingInterviews = interviewRepository.count();
+        
         if (existingUsers < 50) {
             log.info("Database contains {} users. Populating with sample data to reach 50 users...", existingUsers);
             createSampleUsers();
             log.info("Sample data created successfully! Total users: {}", userRepository.count());
         } else {
-            log.info("Database already contains {} users. Skipping data initialization.", existingUsers);
+            log.info("Database already contains {} users. Skipping user data initialization.", existingUsers);
+        }
+        
+        if (existingInterviews == 0) {
+            log.info("Database contains {} interviews. Creating sample interviews...", existingInterviews);
+            createSampleInterviews();
+        } else {
+            log.info("Database already contains {} interviews. Skipping interview data initialization.", existingInterviews);
         }
     }
 
@@ -120,5 +132,59 @@ public class DataLoader implements CommandLineRunner {
                 users.stream().mapToInt(u -> u.getRole() == Role.ROLE_CANDIDATE ? 1 : 0).sum(),
                 users.stream().mapToInt(u -> u.getRole() == Role.ROLE_RECRUITER ? 1 : 0).sum(),
                 users.stream().mapToInt(u -> u.getRole() == Role.ROLE_ADMIN ? 1 : 0).sum());
+    }
+    
+    private void createSampleInterviews() {
+        List<User> candidates = userRepository.findByRole(Role.ROLE_CANDIDATE);
+        List<User> recruiters = userRepository.findByRole(Role.ROLE_RECRUITER);
+        
+        if (candidates.isEmpty() || recruiters.isEmpty()) {
+            log.warn("Cannot create sample interviews: No candidates or recruiters found in database");
+            return;
+        }
+        
+        List<Interview> interviews = new ArrayList<>();
+        Random random = new Random();
+        
+        String[] positions = {
+            "Senior Java Developer", "Full Stack Developer", "Frontend Developer", 
+            "Backend Developer", "DevOps Engineer", "Data Scientist", "Product Manager",
+            "UI/UX Designer", "Quality Assurance Engineer", "System Administrator",
+            "Database Administrator", "Business Analyst", "Project Manager", 
+            "Technical Lead", "Software Architect", "Mobile Developer", 
+            "Cloud Engineer", "Security Engineer", "Machine Learning Engineer"
+        };
+        
+        // Create interviews for 70% of candidates (some candidates may not have interviews yet)
+        int interviewCount = (int) (candidates.size() * 0.7);
+        
+        for (int i = 0; i < interviewCount; i++) {
+            Interview interview = new Interview();
+            
+            // Assign a random candidate
+            User candidate = candidates.get(random.nextInt(candidates.size()));
+            interview.setUser(candidate);
+            
+            // Set a random position
+            interview.setPosition(positions[random.nextInt(positions.length)]);
+            
+            // 70% of interviews get a score (have been evaluated)
+            // 30% remain unscored (score = 0)
+            if (random.nextDouble() < 0.7) {
+                // Scored interviews: random score between 1-100
+                interview.setScore(random.nextInt(100) + 1);
+            } else {
+                // Unscored interviews
+                interview.setScore(0);
+            }
+            
+            interviews.add(interview);
+        }
+        
+        interviewRepository.saveAll(interviews);
+        
+        long scoredCount = interviews.stream().mapToLong(i -> i.getScore() > 0 ? 1 : 0).sum();
+        log.info("Created {} interviews: {} scored, {} unscored", 
+                interviews.size(), scoredCount, interviews.size() - scoredCount);
     }
 }

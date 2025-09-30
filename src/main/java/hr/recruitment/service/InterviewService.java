@@ -30,6 +30,11 @@ public class InterviewService {
         return interviewRepository.findByUserId(userId);
     }
     
+    public List<Interview> getScoredInterviews() {
+        // Get all interviews that have been scored (score > 0)
+        return interviewRepository.findByScoreGreaterThan(0);
+    }
+    
     public Interview updateInterview(Long id, Interview interviewDetails) {
         Interview interview = getInterviewById(id);
         interview.setUser(interviewDetails.getUser());

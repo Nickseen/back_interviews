@@ -1,7 +1,6 @@
 package hr.recruitment.service;
 
 import hr.recruitment.dto.CandidateProfileDto;
-import hr.recruitment.dto.UserRegistrationDto;
 import hr.recruitment.model.User;
 import hr.recruitment.model.enums.Role;
 import hr.recruitment.repository.UserRepository;
@@ -15,28 +14,6 @@ import java.util.List;
 public class UserService {
     
     private final UserRepository userRepository;
-    
-    public User registerUser(UserRegistrationDto registrationDto, String roleParam) {
-        // Check if email already exists
-        if (userRepository.findByEmail(registrationDto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists: " + registrationDto.getEmail());
-        }
-        
-        User user = new User();
-        user.setName(registrationDto.getName());
-        user.setEmail(registrationDto.getEmail());
-        
-        // Map URL role parameter to enum (only CANDIDATE and RECRUITER allowed for registration)
-        Role role = switch (roleParam.toLowerCase()) {
-            case "candidate" -> Role.ROLE_CANDIDATE;
-            case "recruiter" -> Role.ROLE_RECRUITER;
-            default -> throw new IllegalArgumentException("Invalid role for registration: " + roleParam);
-        };
-        
-        user.setRole(role);
-        
-        return userRepository.save(user);
-    }
     
     public List<User> getAllUsers() {
         return userRepository.findAll();
