@@ -120,6 +120,7 @@
                     <url>jdbc:postgresql://localhost:5432/recruitment_db</url>
                     <user>postgres</user>
                     <password>admin</password>
+                    <cleanDisabled>false</cleanDisabled>
                 </configuration>
             </plugin>
 

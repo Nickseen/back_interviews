@@ -6,7 +6,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
@@ -18,3 +18,4 @@ spring:
     locations: classpath:/db/migration
     baseline-on-migrate: true
     enabled: true
+    clean-disabled: false
